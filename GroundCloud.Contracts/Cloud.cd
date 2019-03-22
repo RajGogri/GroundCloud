@@ -15,7 +15,7 @@
     </TypeIdentifier>
   </Interface>
   <Enum Name="GroundCloud.Contracts.BodySerialization">
-    <Position X="0.5" Y="3" Width="2.5" />
+    <Position X="0.75" Y="3" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAACiAAIAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Cloud.cs</FileName>
