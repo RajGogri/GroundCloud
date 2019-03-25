@@ -19,10 +19,6 @@ namespace GroundCloud.UnitTests
         public CloudReactiveTest()
         {
             response =new Response<string>();
-
-           
-            //mockCloud.Setup(x => x.Get<string, string>("http://abc.com/testmethod", new KeyValuePair<string, string>("abc", "xyz"), "request body", BodySerialization.DEFAULT))
-               //.Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, "Endpoint url is not valid"));
         }
 
         public IObservable<Response<string>> ReturnResponseObject(HttpStatusCode httpStatusCode,string resBody)
@@ -32,23 +28,25 @@ namespace GroundCloud.UnitTests
             response.ResponseHeader = new KeyValuePair<string, string>("", "");
             return Observable.Return<Response<string>>(response);
             //return response;
-
-
         }
 
         [Fact]
         public void Get_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
+            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Get<string, string>(null, new KeyValuePair<string, string>("abc", "xyz"), "request body", BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<string, string>(null, new KeyValuePair<string, string>("abc", "xyz"),
+                 "request body", BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.NotFound, "Endpoint url can not be null"));
-
-
             IObservable<Response<string>> resObj =mockCloudObject.Get<String, string>(null, new KeyValuePair<string, string>("abc", "xyz"), "request body", BodySerialization.DEFAULT);
 
-            //resObj.Subscribe
-            Assert.Equal<HttpStatusCode>(HttpStatusCode.NotFound,resObj.FirstOrDefault().StatusCode);
+            resObj.Subscribe(async =>
+            {
+                statusCode = resObj.FirstOrDefault().StatusCode;
+            });
+
+            Assert.Equal(HttpStatusCode.NotFound, statusCode);
         }
 
         [Fact]
@@ -71,21 +69,29 @@ namespace GroundCloud.UnitTests
             Assert.IsType<IObservable<Response<string>>>(resObj);
 
         }
-        [Fact]
-        public void Get_IsEndPointNotValid_ReturnsErrResponse()
-        {
-            //var scheduler = new TestScheduler();
-            //ICloud mockCloudObject = mockCloud.Object;
+        //[Fact]
+        //public void Get_IsEndPointNotValid_ReturnsErrResponse()
+        //{
+        //    var scheduler = new TestScheduler();
+        //    ICloud mockCloudObject = mockCloud.Object;
 
-            //var actual = scheduler.Start(
-            //       () => mockCloudObject.Get<string,string>(null,new KeyValuePair<string, string>("",""),"test request",BodySerialization.DEFAULT)
-            //     );
+        //    mockCloud.Setup(x => x.Get<string, string>(null, new KeyValuePair<string, string>("abc", "xyz"), "request body", BodySerialization.DEFAULT))
+        //       .Returns(ReturnResponseObject(HttpStatusCode.NotFound, "Endpoint url can not be null"));
 
-            //var expected= ;
+        //    var actual = scheduler.Start(
+        //           () => mockCloudObject.Get<string, string>(null, new KeyValuePair<string, string>("", ""), "test request", BodySerialization.DEFAULT),
+        //           created: 0,
+        //           subscribed: 10,
+        //           disposed: 100
+        //         );
 
-            //ReactiveAssert.AreElementsEqual(expected, actual.Messages);
+        //    var expected = new[] { OnNext(20,new Response<string> { ResponseBody="",
+        //                        ResponseHeader=new KeyValuePair<string, string>("",""),
+        //                        StatusCode=HttpStatusCode.InternalServerError })};
 
-        }
+        //    ReactiveAssert.AreElementsEqual(expected, actual.Messages);
+
+        //}
 
     }
 }
