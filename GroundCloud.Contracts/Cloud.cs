@@ -19,6 +19,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
+        
         IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization);
         
         /// <summary>
