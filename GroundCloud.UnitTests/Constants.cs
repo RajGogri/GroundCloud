@@ -25,5 +25,7 @@ namespace GroundCloud.UnitTests
 
         public static int REQUEST_HEADER_LIMIT = 5;
 
+        public static string STARTS_WITHTEXT = "https://";
+
     }
 }

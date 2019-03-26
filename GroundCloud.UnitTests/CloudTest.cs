@@ -145,7 +145,7 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Get<string, string>(It.Is<string>(a =>a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Get<string, string>(It.Is<string>(a =>a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
@@ -176,7 +176,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Get_IsResponseCorrectType()
+        public void Get_IsResponseCorrectType_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -305,7 +305,7 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Post<string, string>(It.Is<string>(a => a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1,Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Post<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1,Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
@@ -336,7 +336,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Post_IsResponseCorrectType()
+        public void Post_IsResponseCorrectType_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -467,7 +467,7 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Put<string, string>(It.Is<string>(a => a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Put<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
@@ -499,7 +499,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Put_IsResponseCorrectType()
+        public void Put_IsResponseCorrectType_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -630,7 +630,7 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Delete<string, string>(It.Is<string>(a => a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Delete<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
@@ -662,7 +662,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Delete_IsResponseCorrectType()
+        public void Delete_IsResponseCorrectType_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -794,7 +794,7 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Patch<string, string>(It.Is<string>(a => a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Patch<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
@@ -826,7 +826,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Patch_IsResponseCorrectType()
+        public void Patch_IsResponseCorrectType_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -934,12 +934,12 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Head<string, string>(It.Is<string>(a => a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Head<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                   BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-               BodySerialization.DEFAULT);
+                  BodySerialization.DEFAULT);
 
             resObj.Subscribe(async =>
             {
@@ -965,7 +965,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Head_IsResponseCorrectType()
+        public void Head_IsResponseCorrectType_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -1125,7 +1125,7 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Options<string, string>(It.Is<string>(a => a.StartsWith("https://")), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Options<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
                .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
