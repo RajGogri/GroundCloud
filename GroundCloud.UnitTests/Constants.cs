@@ -5,7 +5,7 @@ namespace GroundCloud.UnitTests
     {
         public static string TEST_API = "https://test.com/testapi";
 
-        public static string INVALID_ENDPOINT_URL = "https://test.com";
+        public static string INVALID_ENDPOINT_URL = "http://test.com";
 
         public static string TEST_REQUEST_HEADER1 = "test header";
 
@@ -14,6 +14,8 @@ namespace GroundCloud.UnitTests
         public static string TEST_REQUEST_BODY = "Test request body";
 
         public static string TEST_RESPONSE_BODY = "Test response body";
+
+        public static string GET_REQ_BODY_NULL = "Get request body should be null";
 
         public static string BAD_REQUEST_MSG = "Bad Request";
 
@@ -31,9 +33,15 @@ namespace GroundCloud.UnitTests
 
         public static string STARTS_WITHTEXT = "https://";
 
+        public static string ENDPOINT_SHOULD_START_WITH = "Endpoint should start with https";
+
         public static string PARAMETERNAME_TEXT = "\nParameter name: ";
 
-        public static string PARAM_ENDPOINT = "Endpoint";
+        public static string PARAM_ENDPOINT = "endpoint";
+
+        public static string PARAM_REQBODY = "body";
+
+        public static string PARAM_REQHEADER = "headers";
 
     }
 }
