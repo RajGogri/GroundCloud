@@ -7,10 +7,18 @@ using System.Linq;
 using Xunit;
 using System.Reactive;
 using System.Reactive.Linq;
-
+using System.Reactive.Disposables;
 
 namespace GroundCloud.UnitTests
 {
+    public class MyDisposable : IDisposable
+    {
+        public void Dispose()
+        {
+            Console.WriteLine("");
+            //throw new NotImplementedException();
+        }
+    }
     public class CloudTest
     {
         Mock<ICloud> mockCloud = new Mock<ICloud>();
@@ -27,6 +35,13 @@ namespace GroundCloud.UnitTests
             response.StatusCode = httpStatusCode;
             response.ResponseHeader = new KeyValuePair<string, string>("", "");
             return Observable.Return<Response<string>>(response);
+
+            //return Observable.Create((IObserver<Response<string>> arg) => arg.OnError();)
+        }
+
+        public string ReturnErrResponse()
+        {
+            return "";
         }
 
         #region Get Method Testcases
@@ -35,43 +50,24 @@ namespace GroundCloud.UnitTests
         public void Get_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
             mockCloud.Setup(x => x.Get<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
-
-            IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+                 }));
+          
+            IObservable<Response<string>> observable = mockCloudObject.Get<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response)=> { },(err) =>{
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
-
-        //[Fact]
-        //public void Get_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Get<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //         null, BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //     null, BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
 
         [Fact]
         public void Get_IsRequestNotNull_ReturnErrResponse()
@@ -82,7 +78,7 @@ namespace GroundCloud.UnitTests
             mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, 
                 new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest, Constants.BAD_REQUEST_MSG));
+               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest,Constants.BAD_REQUEST_MSG));
 
             IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
@@ -96,6 +92,33 @@ namespace GroundCloud.UnitTests
 
         }
 
+        //[Fact]
+        //public void Get_IsRequestNotNull_ReturnErrResponse_Reactive()
+        //{
+        //    ICloud mockCloudObject = mockCloud.Object;
+        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+
+        //    mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API,
+        //        new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+        //         Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+        //       .Returns(Observable.Create<int>(s => {
+        //            IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+        //            Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+        //           s.OnError(new ArgumentNullException(Constants.BAD_REQUEST_MSG));
+        //       }));
+               
+        //    //IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+        //         //Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+
+        //    resObj.Subscribe(async s=>
+        //    {
+        //        statusCode = resObj.FirstOrDefault().StatusCode;
+        //    });
+
+        //    Assert.Equal(HttpStatusCode.BadRequest, statusCode);
+
+        //}
+
         [Fact]
         public void Get_IsRequestHeaderNull_ReturnsErrResponse()
         {
@@ -104,41 +127,15 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
+            Action action = () => mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
              null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
 
-        //[Fact]
-        //public void Get_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //        null, BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1,Constants.TEST_REQUEST_HEADER2),
-        //    null, BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
-
+      
         [Fact]
         public void Get_IsEndpointStartWithHttps_Verify()
         {
@@ -147,17 +144,12 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Get<string, string>(It.Is<string>(a =>a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Get<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
         [Fact]
@@ -196,44 +188,26 @@ namespace GroundCloud.UnitTests
         public void Post_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
             mockCloud.Setup(x => x.Post<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+               }));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Post<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response) => { }, (err) => {
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
 
-        //[Fact]
-        //public void Post_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Post<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //         Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //        Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
-
+       
         [Fact]
         public void Post_IsRequestBodyNull_ReturnErrResponse()
         {
@@ -242,17 +216,12 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest, Constants.BAD_REQUEST_MSG));
+               .Throws(new ArgumentNullException(Constants.REQUEST_BODY_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action=() => mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.BadRequest, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
 
         }
 
@@ -260,64 +229,32 @@ namespace GroundCloud.UnitTests
         public void Post_IsRequestHeaderNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
+            Action action=() => mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
 
-        //[Fact]
-        //public void Post_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //        It.IsAny<string>(), BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //    Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
-
+       
         [Fact]
         public void Post_IsEndpointStartWithHttps_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
             HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
-            mockCloud.Setup(x => x.Post<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1,Constants.TEST_REQUEST_HEADER2),
+            mockCloud.Setup(x => x.Post<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Post<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
         [Fact]
@@ -358,63 +295,38 @@ namespace GroundCloud.UnitTests
         public void Put_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
             mockCloud.Setup(x => x.Put<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+               }));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Put<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response) => { }, (err) => {
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
-
-        //[Fact]
-        //public void Put_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Put<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //         Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //        Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
 
         [Fact]
         public void Put_IsRequestBodyNull_ReturnErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest, Constants.BAD_REQUEST_MSG));
+               .Throws(new ArgumentNullException(Constants.REQUEST_BODY_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.BadRequest, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
 
         }
 
@@ -422,45 +334,18 @@ namespace GroundCloud.UnitTests
         public void Put_IsRequestHeaderNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
+            Action action = () => mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
 
-        //[Fact]
-        //public void Put_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //        It.IsAny<string>(), BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //    Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
-
+      
         [Fact]
         public void Put_IsEndpointStartWithHttps_Verify()
         {
@@ -469,17 +354,12 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Put<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Put<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
 
@@ -521,43 +401,26 @@ namespace GroundCloud.UnitTests
         public void Delete_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
             mockCloud.Setup(x => x.Delete<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+               }));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Delete<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response) => { }, (err) => {
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
 
-        //[Fact]
-        //public void Delete_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Delete<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //         Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //        Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
+      
 
         [Fact]
         public void Delete_IsRequestBodyNull_ReturnErrResponse()
@@ -567,17 +430,12 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest, Constants.BAD_REQUEST_MSG));
+               .Throws(new ArgumentNullException(Constants.REQUEST_BODY_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.BadRequest, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
 
         }
 
@@ -589,60 +447,28 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
+            Action action = () => mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
 
-        //[Fact]
-        //public void Delete_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //        It.IsAny<string>(), BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //    Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
 
         [Fact]
         public void Delete_IsEndpointStartWithHttps_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Delete<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Delete<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
 
@@ -685,128 +511,68 @@ namespace GroundCloud.UnitTests
         public void Patch_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
             mockCloud.Setup(x => x.Patch<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+               }));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Patch<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response) => { }, (err) => {
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
-
-        //[Fact]
-        //public void Patch_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Patch<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //         Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //        Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
 
         [Fact]
         public void Patch_IsRequestBodyNull_ReturnErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest, Constants.BAD_REQUEST_MSG));
+               .Throws(new ArgumentNullException(Constants.REQUEST_BODY_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.BadRequest, statusCode);
-
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         [Fact]
         public void Patch_IsRequestHeaderNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
+            Action action = () => mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
-
-        //[Fact]
-        //public void Patch_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //        It.IsAny<string>(), BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //    Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
 
         [Fact]
         public void Patch_IsEndpointStartWithHttps_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Patch<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Patch<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
 
@@ -848,85 +614,40 @@ namespace GroundCloud.UnitTests
         public void Head_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
-            mockCloud.Setup(x => x.Head<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2)
-                , BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
+            mockCloud.Setup(x => x.Head<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+                 BodySerialization.DEFAULT))
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+               }));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2)
-                , BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Head<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+              BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response) => { }, (err) => {
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
 
-        //[Fact]
-        //public void Head_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Head<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //          BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //        BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
-
+     
         [Fact]
         public void Head_IsRequestHeaderNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                  BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
+            Action action = () => mockCloudObject.Head<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null,null),
                  BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
-        //[Fact]
-        //public void Head_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //         BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //    BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
 
         [Fact]
         public void Head_IsEndpointStartWithHttps_Verify()
@@ -936,17 +657,12 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Head<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                   BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Head<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                   BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
         [Fact]
@@ -965,7 +681,7 @@ namespace GroundCloud.UnitTests
         }
 
         [Fact]
-        public void Head_IsResponseCorrectType_Verify()
+        public void Head_IsResponseCorrectType()
         {
             ICloud mockCloudObject = mockCloud.Object;
 
@@ -1016,63 +732,38 @@ namespace GroundCloud.UnitTests
         public void Options_IsEndPointNull_ReturnsErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
+            string errMsg = null;
 
             mockCloud.Setup(x => x.Options<string, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.NotFound, Constants.ENDPOINT_CANNOT_NULL));
+               .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
+                   observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                   return Disposable.Empty;
+               }));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Options<String, string>(null, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
+            observable.Subscribe((response) => { }, (err) => {
+                errMsg = err.Message;
             });
 
-            Assert.Equal(HttpStatusCode.NotFound, statusCode);
+            Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
-
-        //[Fact]
-        //public void Options_IsEndPointInvalid_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Options<string, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //         Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-        //       .Returns(ReturnResponseObject(HttpStatusCode.InternalServerError, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.INVALID_ENDPOINT_URL, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //        Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        //}
 
         [Fact]
         public void Options_IsRequestBodyNull_ReturnErrResponse()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.BadRequest, Constants.BAD_REQUEST_MSG));
+               .Throws(new ArgumentNullException(Constants.REQUEST_BODY_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  null, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.BadRequest, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
 
         }
 
@@ -1084,60 +775,28 @@ namespace GroundCloud.UnitTests
 
             mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                  Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.Unauthorized, Constants.REQUESTHEADER_CANNOT_NULL));
+               .Throws(new ArgumentNullException(Constants.REQUESTHEADER_CANNOT_NULL));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
+            Action action = () => mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(null, null),
                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.Unauthorized, statusCode);
+            Assert.Throws<ArgumentNullException>(action);
         }
 
-        //[Fact]
-        //public void Options_CheckRequestHeaderLimit_ReturnsErrResponse()
-        //{
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
-
-        //    mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, new KeyValuePair<string, string>(It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT), It.Is<string>(a => a.Length >= Constants.REQUEST_HEADER_LIMIT)),
-        //        It.IsAny<string>(), BodySerialization.DEFAULT))
-        //      .Returns(ReturnResponseObject(HttpStatusCode.RequestHeaderFieldsTooLarge, Constants.ENDPOINT_INVALID));
-
-        //    IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
-        //    Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
-
-
-        //    resObj.Subscribe(async =>
-        //    {
-        //        statusCode = resObj.FirstOrDefault().StatusCode;
-        //    });
-
-        //    Assert.Equal(HttpStatusCode.RequestHeaderFieldsTooLarge, statusCode);
-        //}
 
         [Fact]
         public void Options_IsEndpointStartWithHttps_Verify()
         {
             ICloud mockCloudObject = mockCloud.Object;
-            HttpStatusCode statusCode = HttpStatusCode.NotImplemented;
 
             mockCloud.Setup(x => x.Options<string, string>(It.Is<string>(a => a.StartsWith(Constants.STARTS_WITHTEXT)), new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
                  It.IsAny<string>(), BodySerialization.DEFAULT))
-               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
+               .Throws(new Exception(Constants.STARTS_WITHTEXT));
 
-            IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
+            Action action = () => mockCloudObject.Options<String, string>(Constants.TEST_API, new KeyValuePair<string, string>(Constants.TEST_REQUEST_HEADER1, Constants.TEST_REQUEST_HEADER2),
              Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
 
-            resObj.Subscribe(async =>
-            {
-                statusCode = resObj.FirstOrDefault().StatusCode;
-            });
-
-            Assert.Equal(HttpStatusCode.OK, statusCode);
+            Assert.Throws<Exception>(action);
         }
 
         [Fact]
