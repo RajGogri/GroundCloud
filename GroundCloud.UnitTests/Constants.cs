@@ -43,5 +43,12 @@ namespace GroundCloud.UnitTests
 
         public static string PARAM_REQHEADER = "headers";
 
+        public static string PARAM_CANNOT_BE_NULL = "Argument cannot be null";
+
+        public static string TEST_PARAM = "Test";
+
+        public static string RESPONSE_NULL = "Object reference not set to an instance of an object.";
+
+        public static string RESPONSE_NOT_FOUND = "NotFound";
     }
 }
