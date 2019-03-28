@@ -23,7 +23,7 @@ namespace GroundCloud.UnitTests
         /// Should throw exception if insert argument is null.
         /// </summary>
         [Fact]
-        public void ShouldThrowExceptionIfInsertArgumentIsNull()
+        public void ShouldThrowExceptionIfInsertEntityArgumentIsNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -47,7 +47,7 @@ namespace GroundCloud.UnitTests
         /// Should validate if insert argument is not null.
         /// </summary>
         [Fact]
-        public void ShouldValidateIfInsertArgumentIsNotNull()
+        public void ShouldValidateIfInsertEntityArgumentIsNotNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -67,7 +67,7 @@ namespace GroundCloud.UnitTests
         /// Should throw exception if Update argument is null.
         /// </summary>
         [Fact]
-        public void ShouldThrowExceptionIfUpdateArgumentIsNull()
+        public void ShouldThrowExceptionIfUpdateEntityArgumentIsNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -87,6 +87,23 @@ namespace GroundCloud.UnitTests
             Assert.Equal(Constants.PARAM_CANNOT_BE_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, ErrMsg);
         }
 
+        /// <summary>
+        /// Should validate if update entity argument is not null.
+        /// </summary>
+        [Fact]
+        public void ShouldValidateIfUpdateEntityArgumentIsNotNull()
+        {
+            //Arrange
+            IGround mockGroundObject = mockGround.Object;
+
+            //Act
+            mockGround.Setup(x => x.Update<string>(Constants.TEST_PARAM)).Returns(Observable.Return<string>("Test"));
+            IObservable<string> ResponseObject = mockGroundObject.Update<string>(Constants.TEST_PARAM);
+
+            //Assert
+            Assert.NotNull(ResponseObject);
+        }
+
         #endregion
 
         #region TestCases for Delete API
@@ -94,7 +111,7 @@ namespace GroundCloud.UnitTests
         /// Should throw exception if Delete argument is null.
         /// </summary>
         [Fact]
-        public void ShouldThrowExceptionIfDeleteArgumentIsNull()
+        public void ShouldThrowExceptionIfDeleteEntityArgumentIsNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -114,6 +131,24 @@ namespace GroundCloud.UnitTests
             Assert.Equal(Constants.PARAM_CANNOT_BE_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, ErrMsg);
         }
 
+        /// <summary>
+        /// Should  validate if delete entity argument is not null.
+        /// </summary>
+        [Fact]
+        public void ShouldValidateIfDeleteEntityArgumentIsNotNull()
+        {
+            //Arrange
+            IGround mockGroundObject = mockGround.Object;
+
+            //Act
+            mockGround.Setup(x => x.Delete<string>(Constants.TEST_PARAM)).Returns(Observable.Return<string>("Test"));
+            IObservable<string> ResponseObject = mockGroundObject.Delete<string>(Constants.TEST_PARAM);
+
+            //Assert
+            Assert.NotNull(ResponseObject);
+        }
+
+
         #endregion
 
         #region TestCases for FetchById API
@@ -121,7 +156,7 @@ namespace GroundCloud.UnitTests
         /// Should throw exception if Update argument is null.
         /// </summary>
         [Fact]
-        public void ShouldThrowExceptionIfFetchByIdArgumentIsNull()
+        public void ShouldThrowExceptionIfFetchEntityByIdArgumentIsNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -142,34 +177,10 @@ namespace GroundCloud.UnitTests
         }
 
         /// <summary>
-        /// Should throw exception if fetch by identifier generates bad request.
-        /// </summary>
-        [Fact]
-        public void ShouldThrowExceptionIfFetchByIdGeneratesBadRequest()
-        {
-            //Arrange
-            IGround mockGroundObject = mockGround.Object;
-            string ErrMsg = null;
-            int param = 0;
-
-            //Act
-            mockGround.Setup(x => x.FetchById<string>(param.ToString())).Returns(Observable.Create<string>((IObserver<string> observer) =>
-            {
-                observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.BAD_REQUEST_MSG));
-                return Disposable.Empty;
-            }));
-            IObservable<string> observable = mockGroundObject.FetchById<string>(param.ToString());
-            observable.Subscribe((response) => { }, (err) => { ErrMsg = err.Message; });
-
-            //Assert
-            Assert.Equal(Constants.BAD_REQUEST_MSG + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, ErrMsg);
-        }
-
-        /// <summary>
         /// Should validate if fetch by id response is not null.
         /// </summary>
         [Fact]
-        public void ShouldValidateIfFetchByIdResponseIsNotNull()
+        public void ShouldValidateIfFetchEntityByIdResponseIsNotNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -184,7 +195,7 @@ namespace GroundCloud.UnitTests
 
 
         //TODO:
-        public void ShouldValidateIfFetchByIdResponseIsNull()
+        public void ShouldValidateIfFetchEntityByIdResponseIsNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -201,7 +212,7 @@ namespace GroundCloud.UnitTests
         /// Should validate the correct type generated by FetchById API
         /// </summary>
         [Fact]
-        public void ShouldValidateIfFetchByIdResponseIsCorrectType()
+        public void ShouldValidateIfFetchEntityByIdResponseIsCorrectType()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -214,31 +225,6 @@ namespace GroundCloud.UnitTests
             Assert.IsType<string>(ResponseObject.FirstOrDefault());
         }
 
-        /// <summary>
-        /// Should throw exception if response is not found.
-        /// </summary>
-        [Fact]
-        public void ShouldThrowExceptionIfResponseisNotFound()
-        {
-            //Arrange
-            IGround mockGroundObject = mockGround.Object;
-            string ErrMsg = null;
-            string param = null;
-
-            //Act
-            mockGround.Setup(x => x.FetchById<string>(param)).Returns(Observable.Create<string>((IObserver<string> observer) =>
-            {
-                observer.OnError(new Exception(HttpStatusCode.NotFound.ToString()));
-                return Disposable.Empty;
-            }));
-            IObservable<string> observable = mockGroundObject.FetchById<string>(param);
-            observable.Subscribe((response) => { }, (err) => { ErrMsg = err.Message; });
-
-            //Assert
-            Assert.Equal(Constants.RESPONSE_NOT_FOUND, ErrMsg);
-        }
-
-
         #endregion
 
         #region TestCases for FetchALL
@@ -247,7 +233,7 @@ namespace GroundCloud.UnitTests
         /// Should throw exception if fetch all results is null.
         /// </summary>
         [Fact]
-        public void ShouldThrowExceptionIfFetchAllIsNull()
+        public void ShouldThrowExceptionIfFetchingAllEntityIsNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -266,31 +252,11 @@ namespace GroundCloud.UnitTests
             Assert.Equal(Constants.RESPONSE_NULL, ErrMsg);
         }
 
-        [Fact]
-        public void ShouldThrowExceptionIfFetchAllGeneratesBadRequest()
-        {
-            //Arrange
-            IGround mockGroundObject = mockGround.Object;
-            string ErrMsg = null;
-
-            //Act
-            mockGround.Setup(x => x.FetchAll<string>()).Returns(Observable.Create((IObserver<IEnumerable<string>> observer) =>
-            {
-                observer.OnError(new NullReferenceException(Constants.BAD_REQUEST_MSG));
-                return Disposable.Empty;
-            }));
-            IObservable<IEnumerable<string>> observable = mockGroundObject.FetchAll<string>();
-            observable.Subscribe((response) => { }, (err) => { ErrMsg = err.Message; });
-
-            //Assert
-            Assert.Equal(Constants.BAD_REQUEST_MSG, ErrMsg);
-        }
-
         /// <summary>
         /// Should validate if fetch all response is not null.
         /// </summary>
         [Fact]
-        public void ShouldValidateIfFetchAllResponseIsNotNull()
+        public void ShouldValidateIfFetchingAllEntityResponseIsNotNull()
         {
             //Arrange
             IGround mockGroundObject = mockGround.Object;
@@ -299,6 +265,51 @@ namespace GroundCloud.UnitTests
             //Act
             mockGround.Setup(x => x.FetchAll<string>()).Returns(Observable.Return(DummyList));
             IObservable<IEnumerable<string>> ResponseObject = mockGroundObject.FetchAll<string>();
+
+            //Assert
+            Assert.NotNull(ResponseObject);
+        }
+
+        #endregion
+
+        #region TestCases for Upsert
+
+        /// <summary>
+        /// Should  throw exception if upsert entity argument is null.
+        /// </summary>
+        [Fact]
+        public void ShouldThrowExceptionIfUpsertEntityArgumentIsNull()
+        {
+            //Arrange
+            IGround mockGroundObject = mockGround.Object;
+            string ErrMsg = null;
+            string param = null;
+
+            //Act
+            mockGround.Setup(x => x.Upsert<string>(param)).Returns(Observable.Create<string>((IObserver<string> observer) =>
+            {
+                observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.PARAM_CANNOT_BE_NULL));
+                return Disposable.Empty;
+            }));
+            IObservable<string> observable = mockGroundObject.Upsert(param);
+            observable.Subscribe((response) => { }, (err) => { ErrMsg = err.Message; });
+
+            //Assert
+            Assert.Equal(Constants.PARAM_CANNOT_BE_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, ErrMsg);
+        }
+
+        /// <summary>
+        /// Should  validate if upsert entity argument is not null.
+        /// </summary>
+        [Fact]
+        public void ShouldValidateIfUpsertEntityArgumentIsNotNull()
+        {
+            //Arrange
+            IGround mockGroundObject = mockGround.Object;
+
+            //Act
+            mockGround.Setup(x => x.Upsert<string>(Constants.TEST_PARAM)).Returns(Observable.Return<string>("Test"));
+            IObservable<string> ResponseObject = mockGroundObject.Upsert<string>(Constants.TEST_PARAM);
 
             //Assert
             Assert.NotNull(ResponseObject);
