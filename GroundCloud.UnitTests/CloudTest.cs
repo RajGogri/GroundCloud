@@ -573,36 +573,6 @@ namespace GroundCloud.UnitTests
             Assert.Equal(Constants.ENDPOINT_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_ENDPOINT, errMsg);
         }
 
-      
-        ///// <summary>
-        ///// Deletes the is request body null throws argument null exception.
-        ///// </summary>
-        //[Fact]
-        //public void Delete_IsRequestBodyNull_ThrowsArgumentNullException()
-        //{
-        //    //Arrange
-        //    ICloud mockCloudObject = mockCloud.Object;
-        //    string errMsg = null;
-
-        //    mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-        //         null, BodySerialization.DEFAULT))
-        //       .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
-        //           observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
-        //           return Disposable.Empty;
-        //       }));
-
-        //    //Act
-        //    IObservable<Response<string>> observable = mockCloudObject.Delete<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-        //     null, BodySerialization.DEFAULT);
-
-        //    observable.Subscribe((response) => { }, (err) => {
-        //        errMsg = err.Message;
-        //    });
-
-        //    //Assert
-        //    Assert.Equal(Constants.REQUEST_BODY_CANNOT_NULL + Constants.PARAMETERNAME_TEXT + Constants.PARAM_REQBODY, errMsg);
-
-        //}
 
         /// <summary>
         /// Deletes the is request header null throws argument null exception.
@@ -1208,6 +1178,25 @@ namespace GroundCloud.UnitTests
 
         }
 
+        #endregion
+
+        #region cancel method Testcases
+        [Fact]
+        public void CancelTask_IsSuccessfullyExecuted_ReturnsTrue()
+        {
+            //Arrange
+            ICloud mockCloudObject = mockCloud.Object;
+
+            mockCloud.Setup(x => x.CancelTask())
+             .Returns(Observable.Return(true));
+
+            //Act
+            IObservable<bool> resObj = mockCloudObject.CancelTask();
+
+            //Assert
+            Assert.Equal(Observable.Return(true).FirstOrDefault(), resObj.FirstOrDefault());
+
+        }
         #endregion
     }
 }

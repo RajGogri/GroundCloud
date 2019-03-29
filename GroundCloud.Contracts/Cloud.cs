@@ -93,6 +93,8 @@ namespace GroundCloud.Contracts
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
         IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+
+        IObservable<bool> CancelTask();
     }
 
     /// <summary>

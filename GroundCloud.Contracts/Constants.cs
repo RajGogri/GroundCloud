@@ -47,5 +47,7 @@ namespace GroundCloud.Contracts
 
         public static string PARAM_REQHEADER = "headers";
 
+        public static string TASK_CANCELLED_MSG = "Task has been cancelled";
+
     }
 }

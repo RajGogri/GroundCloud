@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace GroundCloud.Contracts
@@ -102,8 +103,9 @@ namespace GroundCloud.Contracts
                             }
                         }
                     }
-                    catch(Exception ex){
-                        observer.OnError(new Exception(ex.Message));
+                    catch(TaskCanceledException)
+                    {
+                        observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                     }
                      
                     return Disposable.Empty;
@@ -202,9 +204,9 @@ namespace GroundCloud.Contracts
 
                     }
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    observer.OnError(new Exception(ex.Message));
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                 }
 
                 return Disposable.Empty;
@@ -302,9 +304,9 @@ namespace GroundCloud.Contracts
 
                     }
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    observer.OnError(new Exception(ex.Message));
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                 }
 
                 return Disposable.Empty;
@@ -394,9 +396,9 @@ namespace GroundCloud.Contracts
 
                     }
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    observer.OnError(new Exception(ex.Message));
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                 }
 
                 return Disposable.Empty;
@@ -493,9 +495,9 @@ namespace GroundCloud.Contracts
 
                     }
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    observer.OnError(new Exception(ex.Message));
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                 }
 
                 return Disposable.Empty;
@@ -580,9 +582,9 @@ namespace GroundCloud.Contracts
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    observer.OnError(new Exception(ex.Message));
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                 }
 
                 return Disposable.Empty;
@@ -664,21 +666,22 @@ namespace GroundCloud.Contracts
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (TaskCanceledException)
                 {
-                    observer.OnError(new Exception(ex.Message));
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
                 }
 
                 return Disposable.Empty;
             });
         }
 
-        public void CancelTask()
+        public IObservable<bool> CancelTask()
         {
             if (token != null)
             {
                 token.Cancel();
             }
+            return Observable.Return(token.IsCancellationRequested);
         }
     }
 }
