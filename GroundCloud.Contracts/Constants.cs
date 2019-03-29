@@ -27,7 +27,11 @@ namespace GroundCloud.Contracts
 
         public static string REQUESTHEADER_CANNOT_NULL = "Request header can not be null";
 
-        public static string RESPONSETHEADER_CANNOT_NULL = "Request header can not be null";
+        public static string RESPONSETHEADER_CANNOT_NULL = "Response header is null";
+
+        public static string RESPONSE_IS_NULL = "Response is null";
+
+        public static string ERROR_WHILE_SERIALIZATION = "Some error occured while Serialization/DeSerialization";
 
         public static int REQUEST_HEADER_LIMIT = 5;
 

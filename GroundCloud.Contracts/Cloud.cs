@@ -20,7 +20,7 @@ namespace GroundCloud.Contracts
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
         
-        IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization);
+        IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization);
         
         /// <summary>
         /// HTTP Post Request
@@ -33,7 +33,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Post<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization);
+        IObservable<Response<ResBody>> Post<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization);
     
         /// <summary>
         /// HTTP Put Request
@@ -45,7 +45,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Put<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Put<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
        
         /// <summary>
         /// HTTP Delete Request
@@ -57,7 +57,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Delete<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Delete<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
         
         /// <summary>
         /// HTTP Patch Request
@@ -69,7 +69,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Patch<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Patch<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
         
         /// <summary>
         /// HTTP Head Request
@@ -80,7 +80,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Head<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Head<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, BodySerialization bodySerialization = BodySerialization.DEFAULT);
        
         /// <summary>
         /// HTTP Options Request
@@ -92,7 +92,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, KeyValuePair<string, string> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ namespace GroundCloud.Contracts
         /// <summary>
         /// HTTP Response Header
         /// </summary>
-        public KeyValuePair<string, string> ResponseHeader { get; set; }
+        public List<KeyValuePair<string, string>> ResponseHeader { get; set; }
     }
 
     /// <summary>
