@@ -1,5 +1,5 @@
 ﻿using System;
-namespace GroundCloud.Contracts
+namespace GroundCloud.Impl
 {
     public static class Constants
     {

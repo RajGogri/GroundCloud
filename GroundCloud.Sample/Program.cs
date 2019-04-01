@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reactive;
 using GroundCloud.Contracts;
+using GroundCloud.Impl;
+
 namespace GroundCloud.Sample
 {
     class Program

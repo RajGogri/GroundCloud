@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using System.Linq;
+using GroundCloud.Contracts;
 
-namespace GroundCloud.Contracts
+namespace GroundCloud.Impl
 {
     public static class HelperClass
     {

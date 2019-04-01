@@ -10,9 +10,10 @@ using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using GroundCloud.Contracts;
 using Newtonsoft.Json;
 
-namespace GroundCloud.Contracts
+namespace GroundCloud.Impl
 {
     public class CloudObservables:ICloud
     {

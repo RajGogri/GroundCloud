@@ -10,6 +10,12 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GroundCloud.Contracts\GroundCloud.Contracts.csproj" />
+    <ProjectReference Include="..\GroundCloud.Impl\GroundCloud.Impl.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="References\GroundCloud.Contracts.dll" />
   </ItemGroup>
 </Project>
