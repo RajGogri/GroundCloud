@@ -124,7 +124,7 @@ namespace GroundCloud.UnitTests
                 observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.PARAM_CANNOT_BE_NULL));
                 return Disposable.Empty;
             }));
-            IObservable<string> observable = mockGroundObject.Delete(param);
+            IObservable<string> observable = mockGroundObject.Delete<string>(param);
             observable.Subscribe((response) => { }, (err) => { ErrMsg = err.Message; });
 
             //Assert

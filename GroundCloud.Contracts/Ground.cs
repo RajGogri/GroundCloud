@@ -35,7 +35,7 @@ namespace GroundCloud.Contracts
         /// <param name="entity">Entity To Be Deleted</param>
         /// <typeparam name="Entity">Type Of Entity</typeparam>
         /// <returns>Deleted Entity</returns>
-        IObservable<Entity> Delete<Entity>(Entity entity);
+        IObservable<Entity> Delete<Entity>(string id);
         /// <summary>
         /// Fetch All Entities From Local Cache
         /// </summary>

@@ -15,8 +15,8 @@ namespace GroundCloud.Sample
             var testObserver = new CloudObserver();
 
             //GET
-            //testObserver.Subscribe(testObservable.Get<string,Employee>("http://dummy.restapiexample.com/api/v1/employee/5089", 
-                //new KeyValuePair<string, string>("abc", "xyz"), null, BodySerialization.JSON));
+            testObserver.Subscribe(testObservable.Get<string,Employee>("http://dummy.restapiexample.com/api/v1/employee/5089", 
+                null, null, BodySerialization.JSON));
 
             //POST
             //Employee employee = new Employee();

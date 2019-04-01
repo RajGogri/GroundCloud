@@ -47,7 +47,29 @@ namespace GroundCloud.Contracts
 
         public static string PARAM_REQHEADER = "headers";
 
+        public static string PARAM_ID = "id";
+
+        public static string PARAM_CANNOT_BE_NULL = "Argument cannot be null";
+
         public static string TASK_CANCELLED_MSG = "Task has been cancelled";
+
+        public static string PARAM_ENTITY = "entity";
+
+        public static string INSERT_FAILED = "Insertion operation failed";
+
+        public static string NOT_ABLE_GET_INSERTED_ENTITY = "Not able to get inserted entity";
+
+        public static string UPDATE_FAILED = "Update operation failed since entity not found";
+
+        public static string UPSERT_FAILED = "Upsert operation failed";
+
+        public static string DELETE_FAILED = "Delete operation failed";
+
+        public static string DELETE_ENTITY_NOTFOUND = "Not found entity to delete";
+
+        public static string NO_ENTITIES_FOUND = "No entity collection found";
+
+        public static string NO_ENTITY_FOUND = "No entity found";
 
     }
 }
