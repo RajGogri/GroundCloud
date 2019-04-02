@@ -72,29 +72,29 @@ namespace GroundCloud.Sample
 
             //var customer1 = new Customer();
             //customer1.Id = 3;
-            //customer1.Name = "komal k";
+            //customer1.Name = "komal kadam";
             //testGroundObserver.Subscribe(testGroundObservables.Update<Customer>(customer1));
 
 
             //Upsert
 
-            var customer2 = new Customer();
-            customer2.Id = 2;
-            customer2.Name = "KSK";
-            testGroundObserver.Subscribe(testGroundObservables.Upsert<Customer>(customer2));
+            //var customer2 = new Customer();
+            //customer2.Id = 2;
+            //customer2.Name = "Priya";
+            //testGroundObserver.Subscribe(testGroundObservables.Upsert<Customer>(customer2));
 
             //FetchAll
 
-            testGObserver.Subscribe(testGroundObservables.FetchAll<Customer>());
+            //testGObserver.Subscribe(testGroundObservables.FetchAll<Customer>());
 
 
             //Fetch By id
 
-            //testGroundObserver.Subscribe(testGroundObservables.FetchById<Customer>("1"));
+            //testGroundObserver.Subscribe(testGroundObservables.FetchById<Customer>("2"));
 
             //Delete
 
-            //testGroundObserver.Subscribe(testGroundObservables.Delete<Customer>("1"));
+            //testGroundObserver.Subscribe(testGroundObservables.Delete<Customer>("2"));
 
         }
     }

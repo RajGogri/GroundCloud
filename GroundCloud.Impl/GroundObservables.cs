@@ -27,26 +27,26 @@ namespace GroundCloud.Impl
         {
             return Observable.Create<Entity>((IObserver<Entity> observer) => {
 
-                if (entity == null)
+            if (entity == null)
+            {
+                observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.PARAM_CANNOT_BE_NULL));
+            }
+            else
+            {
+                using (var db = new LiteDatabase(connectionString))
                 {
-                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.PARAM_CANNOT_BE_NULL));
-                }
-                else
-                {
-                    using (var db = new LiteDatabase(connectionString))
-                    {
-                        // Get a collection (or create, if doesn't exist)
-                        try
+                    // Get a collection (or create, if doesn't exist)
+                        var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
+
+                        var insertedID = entityCollection.Insert(entity);
+
+                        if (insertedID == 0)
                         {
-                            var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
-
-                            var insertedID = entityCollection.Insert(entity);
-
-                            if (insertedID == 0)
-                            {
-                                observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.INSERT_FAILED));
-                            }
-                            else
+                            observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.INSERT_FAILED));
+                        }
+                        else
+                        {
+                            try
                             {
                                 var insertedEntity = entityCollection.FindById(insertedID);
                                 if (insertedEntity != null)
@@ -59,15 +59,13 @@ namespace GroundCloud.Impl
                                     observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.NOT_ABLE_GET_INSERTED_ENTITY));
                                 }
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            string msg = ex.Message;
+                            catch (LiteException ex)
+                            {
+                                observer.OnError(ex);
+                            }
                         }
                     }
                 }
-
-
                 return Disposable.Empty;
             });
         }
@@ -92,17 +90,24 @@ namespace GroundCloud.Impl
                     {
                         // Get a collection (or create, if doesn't exist)
                         var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
-                       // var result = entityCollection.FindAll();
-                        bool isUpdated = entityCollection.Update(entity);
-                        if (isUpdated)
+                        // var result = entityCollection.FindAll();
+                        try
                         {
-                            //TODO: find updated entity and send it OnNext
-                            observer.OnNext(entity);
-                            observer.OnCompleted();
+                            bool isUpdated = entityCollection.Update(entity);
+                            if (isUpdated)
+                            {
+                                //TODO: find updated entity and send it OnNext
+                                observer.OnNext(entity);
+                                observer.OnCompleted();
+                            }
+                            else
+                            {
+                                observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.UPDATE_FAILED));
+                            }
                         }
-                        else
+                        catch (LiteException ex)
                         {
-                            observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.UPDATE_FAILED));
+                            observer.OnError(ex);
                         }
                     }
                 }
@@ -124,25 +129,28 @@ namespace GroundCloud.Impl
                 {
                     observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.PARAM_CANNOT_BE_NULL));
                 }
-
-                using (var db = new LiteDatabase(connectionString))
+                else
                 {
-                    // Get a collection (or create, if doesn't exist)
-                    var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
-
-                    bool isUpserted = entityCollection.Upsert(entity);
-
-                    if (isUpserted)
+                    using (var db = new LiteDatabase(connectionString))
                     {
-                        //TODO: updated entity need to pass
-                        observer.OnNext(entity);
-                        observer.OnCompleted();
-                    }
-                    else
-                    {
-                        observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.UPSERT_FAILED));
+                        // Get a collection (or create, if doesn't exist)
+                        var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
+
+                        try
+                        {
+                            bool isUpserted = entityCollection.Upsert(entity);
+
+                            observer.OnNext(entity);
+                            observer.OnCompleted();
+
+                        }
+                        catch (LiteException ex)
+                        {
+                            observer.OnError(ex);
+                        }
                     }
                 }
+
                 return Disposable.Empty;
             });
         }
@@ -171,16 +179,23 @@ namespace GroundCloud.Impl
                         var resultEntity = entityCollection.FindById(Convert.ToInt32(id));
 
                         if (resultEntity != null)
-                        { 
-                            bool isDeleted= entityCollection.Delete(Convert.ToInt32(id));
-                            if (isDeleted)
+                        {
+                            try
                             {
-                                observer.OnNext(resultEntity);
-                                observer.OnCompleted();
+                                bool isDeleted = entityCollection.Delete(Convert.ToInt32(id));
+                                if (isDeleted)
+                                {
+                                    observer.OnNext(resultEntity);
+                                    observer.OnCompleted();
+                                }
+                                else
+                                {
+                                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.DELETE_FAILED));
+                                }
                             }
-                            else
+                            catch (LiteException ex)
                             {
-                                observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.DELETE_FAILED));
+                                observer.OnError(ex);
                             }
                         }
                         else
@@ -207,19 +222,27 @@ namespace GroundCloud.Impl
 
                 using (var db = new LiteDatabase(connectionString))
                 {
-                    // Get a collection (or create, if doesn't exist)
-                    var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
-
-                    var resEntityCollection = entityCollection.FindAll();
-
-                    if (resEntityCollection != null)
+                    try
                     {
-                        observer.OnNext(resEntityCollection);
-                        observer.OnCompleted();
+                        // Get a collection (or create, if doesn't exist)
+                        var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
+
+                        var resEntityCollection = entityCollection.FindAll();
+
+                        if (resEntityCollection != null)
+                        {
+                            observer.OnNext(resEntityCollection);
+                            observer.OnCompleted();
+                        }
+                        else
+                        {
+                            //observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.NO_ENTITIES_FOUND));
+                            observer.OnError(new NullReferenceException(Constants.PARAM_ENTITY, null));
+                        }
                     }
-                    else
+                    catch (LiteException ex)
                     {
-                        observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.NO_ENTITIES_FOUND));
+                        observer.OnError(ex);
                     }
                 }
                 return Disposable.Empty;
@@ -240,31 +263,36 @@ namespace GroundCloud.Impl
                 {
                     observer.OnError(new ArgumentNullException(Constants.PARAM_ID, Constants.PARAM_CANNOT_BE_NULL));
                 }
-
-                using (var db = new LiteDatabase(connectionString))
+                else
                 {
-                    // Get a collection (or create, if doesn't exist)
-                    var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
+                    using (var db = new LiteDatabase(connectionString))
+                    {
+                        // Get a collection (or create, if doesn't exist)
+                        var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
 
-                    var resEntity=  entityCollection.FindById(Convert.ToInt32(id));
-                    if (resEntity != null)
-                    {
-                        observer.OnNext(resEntity);
-                        observer.OnCompleted();
+                        try
+                        {
+                            var resEntity = entityCollection.FindById(Convert.ToInt32(id));
+                            if (resEntity != null)
+                            {
+                                observer.OnNext(resEntity);
+                                observer.OnCompleted();
+                            }
+                            else
+                            {
+                                observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.NO_ENTITY_FOUND));
+                            }
+                        }
+                        catch (LiteException ex)
+                        {
+                            observer.OnError(ex);
+                        }
                     }
-                    else
-                    {
-                        observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.NO_ENTITY_FOUND));
-                    }
+
                 }
-
                 return Disposable.Empty;
             });
         }
-
-
-
-
 
     }
 }
