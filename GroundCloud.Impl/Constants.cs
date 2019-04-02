@@ -59,7 +59,7 @@ namespace GroundCloud.Impl
 
         public static string NOT_ABLE_GET_INSERTED_ENTITY = "Not able to get inserted entity";
 
-        public static string UPDATE_FAILED = "Update operation failed since entity not found";
+        public static string UPDATE_FAILED = "Update operation failed";
 
         public static string UPSERT_FAILED = "Upsert operation failed";
 

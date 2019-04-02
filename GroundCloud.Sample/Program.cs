@@ -11,13 +11,19 @@ namespace GroundCloud.Sample
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
+            Program p = new Program();
+            //p.TestCloudObserver();
+            p.TestGroundObserver();
+        }
 
+        public void TestCloudObserver()
+        {
             var testObservable = new CloudObservables();
 
             var testObserver = new CloudObserver();
 
             //GET
-            testObserver.Subscribe(testObservable.Get<string,Employee>("http://dummy.restapiexample.com/api/v1/employee/5089", 
+            testObserver.Subscribe(testObservable.Get<string, Employee>("http://dummy.restapiexample.com/api/v1/employee/5089",
                 null, null, BodySerialization.JSON));
 
             //POST
@@ -27,7 +33,7 @@ namespace GroundCloud.Sample
             //employee.age = "22";
 
             //testObserver.Subscribe(testObservable.Post<Employee, Employee>("http://dummy.restapiexample.com/api/v1/create", 
-                //new KeyValuePair<string, string>("abc", "xyz"), employee, BodySerialization.JSON));
+            //new KeyValuePair<string, string>("abc", "xyz"), employee, BodySerialization.JSON));
 
             //PUT
 
@@ -37,69 +43,60 @@ namespace GroundCloud.Sample
             //employee1.age = "22";
 
             //testObserver.Subscribe(testObservable.Put<Employee, Employee>("http://dummy.restapiexample.com/api/v1/update/5089",
-                    //new KeyValuePair<string, string>("abc", "xyz"), employee1, BodySerialization.JSON));
+            //new KeyValuePair<string, string>("abc", "xyz"), employee1, BodySerialization.JSON));
 
             //DELETE
 
             //testObserver.Subscribe(testObservable.Delete<string, Employee>("http://dummy.restapiexample.com/api/v1/delete/5089",
             //new KeyValuePair<string, string>("abc", "xyz"), null, BodySerialization.JSON));
+        }
+
+        public void TestGroundObserver()
+        {
+            var testGroundObserver = new GroundObserver();
+            var testGObserver = new GroundListObserver();
+
+            var testGroundObservables = new GroundObservables();
+
+            //Insert
+
+            //var customer = new Customer
+            //{
+            //    Name = "John Doe",
+            //    Phones = new string[] { "8000-0000", "9000-0000" },
+            //    IsActive = true
+            //};
+            //testGroundObserver.Subscribe(testGroundObservables.Insert<Customer>(customer));
+
+            //Update
+
+            //var customer1 = new Customer();
+            //customer1.Id = 3;
+            //customer1.Name = "komal k";
+            //testGroundObserver.Subscribe(testGroundObservables.Update<Customer>(customer1));
 
 
+            //Upsert
+
+            var customer2 = new Customer();
+            customer2.Id = 2;
+            customer2.Name = "KSK";
+            testGroundObserver.Subscribe(testGroundObservables.Upsert<Customer>(customer2));
+
+            //FetchAll
+
+            testGObserver.Subscribe(testGroundObservables.FetchAll<Customer>());
+
+
+            //Fetch By id
+
+            //testGroundObserver.Subscribe(testGroundObservables.FetchById<Customer>("1"));
+
+            //Delete
+
+            //testGroundObserver.Subscribe(testGroundObservables.Delete<Customer>("1"));
 
         }
     }
-
-    public class Employee
-    {
-        public string id { get; set; }
-        public string employee_name { get; set; }
-        public string employee_salary { get; set; }
-        public string employee_age { get; set; }
-        public string name { get; set; }
-        public string salary { get; set; }
-        public string age { get; set; }
-        public Success success { get; set; }
-    }
-
-    public class Success
-    {
-        public string text { get; set; }
-    }
-    public class CloudObserver : IObserver<Response<Employee>>
-    {
-        private IDisposable subscriber;
-        private bool first = true;
-        private Response<Employee> res;
-
-        public virtual void Subscribe(IObservable<Response<Employee>> provider)
-        {
-            subscriber = provider.Subscribe(this);
-        }
-
-        public virtual void Unsubscribe()
-        {
-            subscriber.Dispose();
-        }
-
-        public virtual void OnCompleted()
-        {
-            Console.WriteLine("Completed Successfully.");
-        }
-
-        public virtual void OnError(Exception error)
-        {
-            Console.WriteLine("OnError Called.");
-            if (error.GetType().ToString() == "ArgumentNullException")
-            {
-
-            }
-            // Do nothing.
-        }
-
-        public virtual void OnNext(Response<Employee> value)
-        {
-            Console.WriteLine("OnNext Called.");
-            res = value;
-        }
-    }
+   
 }
