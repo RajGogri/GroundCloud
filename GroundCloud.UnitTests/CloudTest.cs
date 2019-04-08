@@ -62,16 +62,16 @@ namespace GroundCloud.UnitTests
             string errMsg = null;
 
 
-            mockCloud.Setup(x => x.Get<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<Request, string>(null, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                  }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Get<String, string>(null, new List<KeyValuePair<string, string>>(),
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Get<Request, string>(null, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response)=> { },(err) =>{
                 errMsg = err.Message;
@@ -91,16 +91,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.GET_REQ_BODY_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Get<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Get<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -121,16 +121,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, null,
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<Request, string>(Constants.TEST_API, null,
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Get<String, string>(Constants.TEST_API, null,
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Get<Request, string>(Constants.TEST_API, null,
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -151,16 +151,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Get<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<Request, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Get<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Get<Request, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -179,13 +179,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Get<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -200,13 +200,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Get<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Get<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, "Test Response Body"));
 
             //Act
-            var resObj = mockCloudObject.Get<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            var resObj = mockCloudObject.Get<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());
@@ -226,16 +226,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Post<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Post<Request, string>(null, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Post<String, string>(null, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Post<Request, string>(null, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -255,16 +255,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Post<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Post<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Post<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -285,16 +285,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, null,
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Post<Request, string>(Constants.TEST_API, null,
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Post<String, string>(Constants.TEST_API, null,
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Post<Request, string>(Constants.TEST_API, null,
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -315,16 +315,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Post<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Post<Request, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Post<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Post<Request, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -343,13 +343,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Post<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Post<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT, false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -364,13 +364,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Post<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-               Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Post<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+               null, BodySerialization.DEFAULT,false))
              .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Post<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(), 
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Post<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(), 
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());
@@ -390,16 +390,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Put<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Put<Request, string>(null, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Put<String, string>(null, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Put<Request, string>(null, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -419,16 +419,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Put<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Put<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Put<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -449,16 +449,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API,null,
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Put<Request, string>(Constants.TEST_API,null,
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Put<String, string>(Constants.TEST_API, null,
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Put<Request, string>(Constants.TEST_API, null,
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -479,16 +479,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Put<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Put<Request, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Put<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Put<Request, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -507,13 +507,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Put<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Put<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -528,13 +528,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Put<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-               Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Put<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+               null, BodySerialization.DEFAULT,false))
              .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Put<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Put<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());
@@ -554,16 +554,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Delete<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Delete<Request, string>(null, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Delete<String, string>(null, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Delete<Request, string>(null, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -584,8 +584,8 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, null,
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Delete<Request, string>(Constants.TEST_API, null,
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) =>
                {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
@@ -593,8 +593,8 @@ namespace GroundCloud.UnitTests
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Delete<String, string>(Constants.TEST_API,null,
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Delete<Request, string>(Constants.TEST_API,null,
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) =>
             {
@@ -615,16 +615,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Delete<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Delete<Request, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Delete<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Delete<Request, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -643,13 +643,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Delete<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Delete<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -664,13 +664,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Delete<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-               Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Delete<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+               null, BodySerialization.DEFAULT,false))
              .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Delete<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Delete<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());
@@ -690,16 +690,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Patch<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Patch<Request, string>(null, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Patch<String, string>(null, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Patch<Request, string>(null, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -719,16 +719,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Patch<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Patch<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Patch<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -748,16 +748,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, null,
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Patch<Request, string>(Constants.TEST_API, null,
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Patch<String, string>(Constants.TEST_API, null,
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Patch<Request, string>(Constants.TEST_API, null,
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -777,16 +777,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Patch<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Patch<Request, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Patch<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Patch<Request, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -805,13 +805,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Patch<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Patch<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -826,13 +826,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Patch<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-               Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Patch<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+               null, BodySerialization.DEFAULT,false))
              .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Patch<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Patch<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());
@@ -852,16 +852,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Head<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(null, new List<KeyValuePair<string, string>>(),
+                 BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Head<String, string>(null, new List<KeyValuePair<string, string>>(),
-              BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Head<string>(null, new List<KeyValuePair<string, string>>(),
+              BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -881,16 +881,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, null,
-                  BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(Constants.TEST_API, null,
+                  BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Head<String, string>(Constants.TEST_API, null,
-             BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Head<string>(Constants.TEST_API, null,
+             BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -910,16 +910,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Head<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Head<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-              BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Head<string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+              BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -938,13 +938,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -959,13 +959,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-               BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+               BodySerialization.DEFAULT,false))
              .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());
@@ -981,13 +981,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj.FirstOrDefault().ResponseHeader);
@@ -1002,13 +1002,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Head<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, null));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Head<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Head<string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.Null(resObj.FirstOrDefault().ResponseBody);
@@ -1028,16 +1028,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Options<string, string>(null, new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Options<Request, string>(null, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Options<String, string>(null, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Options<Request, string>(null, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -1057,16 +1057,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                 null, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Options<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Options<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-             null, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Options<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -1087,16 +1087,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, null,
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Options<Request, string>(Constants.TEST_API, null,
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Options<String, string>(Constants.TEST_API, null,
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Options<Request, string>(Constants.TEST_API, null,
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -1116,16 +1116,16 @@ namespace GroundCloud.UnitTests
             ICloud mockCloudObject = mockCloud.Object;
             string errMsg = null;
 
-            mockCloud.Setup(x => x.Options<string, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
-                 Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Options<Request, string>(It.Is<string>(a => !a.StartsWith(Constants.STARTS_WITHTEXT)), new List<KeyValuePair<string, string>>(),
+                 null, BodySerialization.DEFAULT,false))
                .Returns(Observable.Create<Response<string>>((IObserver<Response<string>> observer) => {
                    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
                    return Disposable.Empty;
                }));
 
             //Act
-            IObservable<Response<string>> observable = mockCloudObject.Options<String, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
-             Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> observable = mockCloudObject.Options<Request, string>(Constants.INVALID_ENDPOINT_URL, new List<KeyValuePair<string, string>>(),
+             null, BodySerialization.DEFAULT,false);
 
             observable.Subscribe((response) => { }, (err) => {
                 errMsg = err.Message;
@@ -1144,13 +1144,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Options<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false))
               .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Options<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.NotNull(resObj);
@@ -1165,13 +1165,13 @@ namespace GroundCloud.UnitTests
             //Arrange
             ICloud mockCloudObject = mockCloud.Object;
 
-            mockCloud.Setup(x => x.Options<string, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-               Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT))
+            mockCloud.Setup(x => x.Options<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+               null, BodySerialization.DEFAULT,false))
              .Returns(ReturnResponseObject(HttpStatusCode.OK, Constants.TEST_RESPONSE_BODY));
 
             //Act
-            IObservable<Response<string>> resObj = mockCloudObject.Options<String, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
-                Constants.TEST_REQUEST_BODY, BodySerialization.DEFAULT);
+            IObservable<Response<string>> resObj = mockCloudObject.Options<Request, string>(Constants.TEST_API, new List<KeyValuePair<string, string>>(),
+                null, BodySerialization.DEFAULT,false);
 
             //Assert
             Assert.IsType<Response<string>>(resObj.FirstOrDefault());

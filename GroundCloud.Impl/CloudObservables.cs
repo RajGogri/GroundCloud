@@ -1,121 +1,216 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GroundCloud.Contracts;
-using Newtonsoft.Json;
 
 namespace GroundCloud.Impl
 {
-    public class CloudObservables:ICloud
+    public class CloudObservables : ICloud
     {
         public CloudObservables()
         {
 
         }
 
-        public static CancellationTokenSource token = null;
-        public static CancellationToken CancellationToken;
+        private CancellationTokenSource TokenSource = null;
 
-        public IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization)
+        public IObservable<bool> CancelTask()
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            if (TokenSource != null)
+            {
+                TokenSource.Cancel();
+            }
+            return Observable.Return(TokenSource.IsCancellationRequested);
+        }
 
-                    try
+        public IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization, bool sync = false) where ReqBody : Request
+        {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
+
+                try
+                {
+                    string content = string.Empty;
+                    var httpClient = new HttpClient();
+                    Response<ResBody> response = null;
+
+                    if (String.IsNullOrEmpty(endPoint))
                     {
-                        string content = string.Empty;
-                        var httpClient = new HttpClient();
-                        Response<ResBody> response = null;
+                        observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                    }
+                    else if (body != null)
+                    {
+                        observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.GET_REQ_BODY_NULL));
+                    }
+                    //else if (!endPoint.StartsWith(Constants.STARTS_WITHTEXT))
+                    //{
+                    //    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
+                    //}
+                    else if (headers == null)
+                    {
+                        observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
+                    }
+                    else
+                    {
 
-                        if (String.IsNullOrEmpty(endPoint))
+                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HelperClass.getSerializationType(bodySerialization)));
+                        foreach (KeyValuePair<string, string> keyValuePair in headers)
                         {
-                            observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                            httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
                         }
-                        else if (body != null)
+                        TokenSource = new CancellationTokenSource();
+                        HttpResponseMessage httpResponse = await httpClient.GetAsync(endPoint, TokenSource.Token);
+
+                        if (httpResponse != null && httpResponse.IsSuccessStatusCode)
                         {
-                            observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.GET_REQ_BODY_NULL));
+                            content = await httpResponse.Content.ReadAsStringAsync();
                         }
-                        //else if (!endPoint.StartsWith(Constants.STARTS_WITHTEXT))
-                        //{
-                        //    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
-                        //}
-                        else if (headers == null)
+
+                        if (!string.IsNullOrEmpty(content))
                         {
-                            observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
+                            try
+                            {
+                                response = new Response<ResBody>();
+                                response.StatusCode = httpResponse.StatusCode;
+
+                                List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();
+
+                                foreach (var obj in httpResponse.Headers)
+                                {
+                                    resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
+                                }
+                                response.ResponseHeader = resHeaderList;
+                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
+                            }
+                            catch (Exception Ex)
+                            {
+                                observer.OnError(new ArgumentNullException(Constants.ERROR_WHILE_SERIALIZATION + "-" + Ex.Message));
+                            }
                         }
                         else
                         {
-                            
-                            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HelperClass.getSerializationType(bodySerialization)));
-                            foreach(KeyValuePair<string,string> keyValuePair in headers)
-                            {
-                                httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
-                            }
+                            observer.OnError(new ArgumentNullException(Constants.RESPONSE_IS_NULL));
+                        }
 
-                            HttpResponseMessage httpResponse = httpClient.GetAsync(endPoint).Result;
-
-                            if (httpResponse!=null && httpResponse.IsSuccessStatusCode)
-                            {
-                                content = httpResponse.Content.ReadAsStringAsync().Result;
-                            }
-
-                            if (!string.IsNullOrEmpty(content))
-                            {
-                                try
-                                {
-                                    response = new Response<ResBody>();
-                                    response.StatusCode = httpResponse.StatusCode;
-
-                                    List<KeyValuePair<string, string>> resHeaderList =new List<KeyValuePair<string, string>>();
-
-                                    foreach(var obj in httpResponse.Headers)
-                                    {
-                                        resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
-                                    }
-                                    response.ResponseHeader = resHeaderList;
-                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
-                                }
-                                catch(Exception Ex)
-                                {
-                                    observer.OnError(new ArgumentNullException(Constants.ERROR_WHILE_SERIALIZATION + "-" + Ex.Message));
-                                }
-                            }
-                            else
-                            {
-                                observer.OnError(new ArgumentNullException(Constants.RESPONSE_IS_NULL));
-                            }
-
-                            if (response != null)
-                            {
-                                observer.OnNext(response);
-                                observer.OnCompleted();
-                            }
-                            else
-                            {
-                                observer.OnError(new ArgumentNullException(Constants.RESPONSE_IS_NULL));
-                            }
+                        if (response != null)
+                        {
+                            observer.OnNext(response);
+                            observer.OnCompleted();
+                        }
+                        else
+                        {
+                            observer.OnError(new ArgumentNullException(Constants.RESPONSE_IS_NULL));
                         }
                     }
-                    catch(TaskCanceledException)
-                    {
-                        observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
-                    }
-                     
-                    return Disposable.Empty;
+                }
+                catch (TaskCanceledException)
+                {
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
+                }
+
+                return Disposable.Empty;
             });
         }
 
-        public IObservable<Response<ResBody>> Post<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization)
+        public IObservable<Response<ResBody>> GetById<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization, bool sync = false) where ReqBody : Request
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
+
+                try
+                {
+                    string content = string.Empty;
+                    var httpClient = new HttpClient();
+                    Response<ResBody> response = null;
+
+                    if (String.IsNullOrEmpty(endPoint))
+                    {
+                        observer.OnError(new ArgumentNullException(Constants.PARAM_ENDPOINT, Constants.ENDPOINT_CANNOT_NULL));
+                    }
+                    else if (body != null)
+                    {
+                        observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.GET_REQ_BODY_NULL));
+                    }
+                    //else if (!endPoint.StartsWith(Constants.STARTS_WITHTEXT))
+                    //{
+                    //    observer.OnError(new Exception(Constants.ENDPOINT_SHOULD_START_WITH));
+                    //}
+                    else if (headers == null)
+                    {
+                        observer.OnError(new ArgumentNullException(Constants.PARAM_REQHEADER, Constants.REQUESTHEADER_CANNOT_NULL));
+                    }
+                    else
+                    {
+
+                        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(HelperClass.getSerializationType(bodySerialization)));
+                        foreach (KeyValuePair<string, string> keyValuePair in headers)
+                        {
+                            httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
+                        }
+                        TokenSource = new CancellationTokenSource();
+                        HttpResponseMessage httpResponse = await httpClient.GetAsync(endPoint, TokenSource.Token);
+
+                        if (httpResponse != null && httpResponse.IsSuccessStatusCode)
+                        {
+                            content = await httpResponse.Content.ReadAsStringAsync();
+                        }
+
+                        if (!string.IsNullOrEmpty(content))
+                        {
+                            try
+                            {
+                                response = new Response<ResBody>();
+                                response.StatusCode = httpResponse.StatusCode;
+
+                                List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();
+
+                                foreach (var obj in httpResponse.Headers)
+                                {
+                                    resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
+                                }
+                                response.ResponseHeader = resHeaderList;
+                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
+                            }
+                            catch (Exception Ex)
+                            {
+                                observer.OnError(new ArgumentNullException(Constants.ERROR_WHILE_SERIALIZATION + "-" + Ex.Message));
+                            }
+                        }
+                        else
+                        {
+                            observer.OnError(new ArgumentNullException(Constants.RESPONSE_IS_NULL));
+                        }
+
+                        if (response != null)
+                        {
+                            observer.OnNext(response);
+                            observer.OnCompleted();
+                        }
+                        else
+                        {
+                            observer.OnError(new ArgumentNullException(Constants.RESPONSE_IS_NULL));
+                        }
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    observer.OnError(new TaskCanceledException(Constants.TASK_CANCELLED_MSG));
+                }
+
+                return Disposable.Empty;
+            });
+        }
+
+        public IObservable<Response<ResBody>> Post<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization, bool sync = false) where ReqBody : Request
+        {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
 
                 try
                 {
@@ -149,24 +244,20 @@ namespace GroundCloud.Impl
                         string requestObj = HelperClass.SerializeModelToJson<ReqBody>(body, bodySerialization);
                         var httpContent = new StringContent(requestObj, Encoding.UTF8, HelperClass.getSerializationType(bodySerialization));
 
-                        if (token == null)
-                        {
-                            token = new CancellationTokenSource();
-                            //token.Cancel()
-                            CancellationToken = token.Token;
-                        }
+                        TokenSource = new CancellationTokenSource();
+
                         if (string.IsNullOrEmpty(requestObj))
                         {
                             observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                         }
                         else
                         {
-                            HttpResponseMessage httpResponse = httpClient.PostAsync(endPoint, httpContent, token.Token).Result;
+                            HttpResponseMessage httpResponse = await httpClient.PostAsync(endPoint, httpContent, TokenSource.Token);
                             if (httpResponse != null)
                             {
                                 if (httpResponse.IsSuccessStatusCode)
                                 {
-                                    content = httpResponse.Content.ReadAsStringAsync().Result;
+                                    content = await httpResponse.Content.ReadAsStringAsync();
                                 }
                                 else
                                 {
@@ -180,8 +271,14 @@ namespace GroundCloud.Impl
                                 {
                                     response = new Response<ResBody>();
                                     response.StatusCode = httpResponse.StatusCode;
-                                    List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();                                      foreach (var obj in httpResponse.Headers)                                     {                                         resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));                                     }                                     response.ResponseHeader = resHeaderList;
-                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
+                                    List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();
+
+                                    foreach (var obj in httpResponse.Headers)
+                                    {
+                                        resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
+                                    }
+                                    response.ResponseHeader = resHeaderList;
+                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
                                 }
                                 catch (Exception Ex)
                                 {
@@ -214,9 +311,10 @@ namespace GroundCloud.Impl
             });
         }
 
-        public IObservable<Response<ResBody>> Put<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT)
+        public IObservable<Response<ResBody>> Put<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
 
                 try
                 {
@@ -249,23 +347,21 @@ namespace GroundCloud.Impl
                         {
                             httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
                         }
-                        if (token == null)
-                        {
-                            token = new CancellationTokenSource();
-                            CancellationToken = token.Token;
-                        }
+
+                        TokenSource = new CancellationTokenSource();
+
                         if (string.IsNullOrEmpty(requestObj))
                         {
                             observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                         }
                         else
                         {
-                            HttpResponseMessage httpResponse = httpClient.PutAsync(endPoint, httpContent, token.Token).Result;
+                            HttpResponseMessage httpResponse = await httpClient.PutAsync(endPoint, httpContent, TokenSource.Token);
                             if (httpResponse != null)
                             {
                                 if (httpResponse.IsSuccessStatusCode)
                                 {
-                                    content = httpResponse.Content.ReadAsStringAsync().Result;
+                                    content = await httpResponse.Content.ReadAsStringAsync();
                                 }
                                 else
                                 {
@@ -279,8 +375,14 @@ namespace GroundCloud.Impl
                                 {
                                     response = new Response<ResBody>();
                                     response.StatusCode = httpResponse.StatusCode;
-                                    List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();                                      foreach (var obj in httpResponse.Headers)                                     {                                         resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));                                     }                                     response.ResponseHeader = resHeaderList;
-                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
+                                    List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();
+
+                                    foreach (var obj in httpResponse.Headers)
+                                    {
+                                        resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
+                                    }
+                                    response.ResponseHeader = resHeaderList;
+                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
                                 }
                                 catch (Exception Ex)
                                 {
@@ -314,9 +416,10 @@ namespace GroundCloud.Impl
             });
         }
 
-        public IObservable<Response<ResBody>> Delete<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT)
+        public IObservable<Response<ResBody>> Delete<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
 
                 try
                 {
@@ -346,13 +449,14 @@ namespace GroundCloud.Impl
                         {
                             httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
                         }
-                        HttpResponseMessage httpResponse = httpClient.DeleteAsync(endPoint).Result;
+                        TokenSource = new CancellationTokenSource();
+                        HttpResponseMessage httpResponse = await httpClient.DeleteAsync(endPoint, TokenSource.Token);
 
                         if (httpResponse != null)
                         {
                             if (httpResponse.IsSuccessStatusCode)
                             {
-                                content = httpResponse.Content.ReadAsStringAsync().Result;
+                                content = await httpResponse.Content.ReadAsStringAsync();
                             }
                             else
                             {
@@ -373,7 +477,7 @@ namespace GroundCloud.Impl
                                     resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
                                 }
                                 response.ResponseHeader = resHeaderList;
-                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
+                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
                             }
                             catch (Exception Ex)
                             {
@@ -406,9 +510,10 @@ namespace GroundCloud.Impl
             });
         }
 
-        public IObservable<Response<ResBody>> Patch<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT)
+        public IObservable<Response<ResBody>> Patch<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
 
                 try
                 {
@@ -435,29 +540,26 @@ namespace GroundCloud.Impl
                     }
                     else
                     {
-                        string requestObj = HelperClass.SerializeModelToJson<ReqBody>(body,bodySerialization);
+                        string requestObj = HelperClass.SerializeModelToJson<ReqBody>(body, bodySerialization);
                         var httpContent = new StringContent(requestObj, Encoding.UTF8, HelperClass.getSerializationType(bodySerialization));
                         foreach (KeyValuePair<string, string> keyValuePair in headers)
                         {
                             httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
                         }
-                        if (token == null)
-                        {
-                            token = new CancellationTokenSource();
-                            CancellationToken = token.Token;
-                        }
+
+                        TokenSource = new CancellationTokenSource();
                         if (string.IsNullOrEmpty(requestObj))
                         {
                             observer.OnError(new ArgumentNullException(Constants.PARAM_REQBODY, Constants.REQUEST_BODY_CANNOT_NULL));
                         }
                         else
                         {
-                            HttpResponseMessage httpResponse = httpClient.PatchAsync(endPoint, httpContent, token.Token).Result;
+                            HttpResponseMessage httpResponse = await httpClient.PatchAsync(endPoint, httpContent, TokenSource.Token);
                             if (httpResponse != null)
                             {
                                 if (httpResponse.IsSuccessStatusCode)
                                 {
-                                    content = httpResponse.Content.ReadAsStringAsync().Result;
+                                    content = await httpResponse.Content.ReadAsStringAsync();
                                 }
                                 else
                                 {
@@ -471,8 +573,14 @@ namespace GroundCloud.Impl
                                 {
                                     response = new Response<ResBody>();
                                     response.StatusCode = httpResponse.StatusCode;
-                                    List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();                                      foreach (var obj in httpResponse.Headers)                                     {                                         resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));                                     }                                     response.ResponseHeader = resHeaderList;
-                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
+                                    List<KeyValuePair<string, string>> resHeaderList = new List<KeyValuePair<string, string>>();
+
+                                    foreach (var obj in httpResponse.Headers)
+                                    {
+                                        resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
+                                    }
+                                    response.ResponseHeader = resHeaderList;
+                                    response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
                                 }
                                 catch (Exception Ex)
                                 {
@@ -505,9 +613,10 @@ namespace GroundCloud.Impl
             });
         }
 
-        public IObservable<Response<ResBody>> Head<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, BodySerialization bodySerialization = BodySerialization.DEFAULT)
+        public IObservable<Response<ResBody>> Head<ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false)
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
 
                 try
                 {
@@ -536,13 +645,13 @@ namespace GroundCloud.Impl
                             httpClient.DefaultRequestHeaders.Add(keyValuePair.Key, keyValuePair.Value);
                         }
 
-                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head,endPoint);
-
-                        HttpResponseMessage httpResponse = httpClient.SendAsync(request).Result;
+                        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Head, endPoint);
+                        TokenSource = new CancellationTokenSource();
+                        HttpResponseMessage httpResponse = await httpClient.SendAsync(request, TokenSource.Token);
 
                         if (httpResponse != null && httpResponse.IsSuccessStatusCode)
                         {
-                            content = httpResponse.Content.ReadAsStringAsync().Result;
+                            content = await httpResponse.Content.ReadAsStringAsync();
                         }
 
                         if (!string.IsNullOrEmpty(content))
@@ -558,7 +667,7 @@ namespace GroundCloud.Impl
                                     resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
                                 }
                                 response.ResponseHeader = resHeaderList;
-                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
+                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
                             }
                             catch (Exception Ex)
                             {
@@ -571,7 +680,7 @@ namespace GroundCloud.Impl
                         }
                         if (response != null)
                         {
-                            if(response.ResponseBody == null && response.ResponseHeader!=null)
+                            if (response.ResponseBody == null && response.ResponseHeader != null)
                             {
                                 observer.OnNext(response);
                                 observer.OnCompleted();
@@ -592,9 +701,10 @@ namespace GroundCloud.Impl
             });
         }
 
-        public IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT)
+        public IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request
         {
-            return Observable.Create<Response<ResBody>>((IObserver<Response<ResBody>> observer) => {
+            return Observable.Create<Response<ResBody>>(async (IObserver<Response<ResBody>> observer) =>
+            {
 
                 try
                 {
@@ -623,12 +733,12 @@ namespace GroundCloud.Impl
                         }
 
                         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Options, endPoint);
-
-                        HttpResponseMessage httpResponse = httpClient.SendAsync(request).Result;
+                        TokenSource = new CancellationTokenSource();
+                        HttpResponseMessage httpResponse = await httpClient.SendAsync(request, TokenSource.Token);
 
                         if (httpResponse != null && httpResponse.IsSuccessStatusCode)
                         {
-                            content = httpResponse.Content.ReadAsStringAsync().Result;
+                            content = await httpResponse.Content.ReadAsStringAsync();
                         }
 
                         if (!string.IsNullOrEmpty(content))
@@ -644,7 +754,7 @@ namespace GroundCloud.Impl
                                     resHeaderList.Add(new KeyValuePair<string, string>(obj.Key, obj.Value.ToString()));
                                 }
                                 response.ResponseHeader = resHeaderList;
-                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content,bodySerialization);
+                                response.ResponseBody = HelperClass.DeserializeFromJson<ResBody>(content, bodySerialization);
                             }
                             catch (Exception Ex)
                             {
@@ -674,15 +784,6 @@ namespace GroundCloud.Impl
 
                 return Disposable.Empty;
             });
-        }
-
-        public IObservable<bool> CancelTask()
-        {
-            if (token != null)
-            {
-                token.Cancel();
-            }
-            return Observable.Return(token.IsCancellationRequested);
         }
     }
 }
