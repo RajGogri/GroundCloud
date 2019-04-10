@@ -3,9 +3,7 @@ using Moq;
 using GroundCloud.Contracts;
 using System.Collections.Generic;
 using System.Net;
-using System.Linq;
 using Xunit;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
 
@@ -209,7 +207,7 @@ namespace GroundCloud.UnitTests
              null, BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
         #endregion
@@ -373,7 +371,7 @@ namespace GroundCloud.UnitTests
                 null, BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
 
@@ -537,7 +535,7 @@ namespace GroundCloud.UnitTests
                 null, BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
 
@@ -673,7 +671,7 @@ namespace GroundCloud.UnitTests
                 null, BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
 
@@ -835,7 +833,7 @@ namespace GroundCloud.UnitTests
                 null, BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
 
@@ -968,7 +966,7 @@ namespace GroundCloud.UnitTests
                 BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
 
@@ -990,7 +988,7 @@ namespace GroundCloud.UnitTests
                 BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.NotNull(resObj.FirstOrDefault().ResponseHeader);
+            Assert.NotNull(resObj.Wait().ResponseHeader);
         }
 
         /// <summary>
@@ -1011,7 +1009,7 @@ namespace GroundCloud.UnitTests
                 BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.Null(resObj.FirstOrDefault().ResponseBody);
+            Assert.Null(resObj.Wait().ResponseBody);
         }
 
         #endregion
@@ -1174,7 +1172,7 @@ namespace GroundCloud.UnitTests
                 null, BodySerialization.DEFAULT,false);
 
             //Assert
-            Assert.IsType<Response<string>>(resObj.FirstOrDefault());
+            Assert.IsType<Response<string>>(resObj.Wait());
 
         }
 
@@ -1194,7 +1192,7 @@ namespace GroundCloud.UnitTests
             IObservable<bool> resObj = mockCloudObject.CancelTask();
 
             //Assert
-            Assert.Equal(Observable.Return(true).FirstOrDefault(), resObj.FirstOrDefault());
+            Assert.True(resObj.Wait());
 
         }
         #endregion

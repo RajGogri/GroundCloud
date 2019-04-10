@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reactive;
 using GroundCloud.Contracts;
 using GroundCloud.Impl;
 
@@ -23,7 +21,7 @@ namespace GroundCloud.Sample
             var testObserver = new CloudObserver();
 
             //GET
-            testObserver.Subscribe(testObservable.Get<string, Employee>("http://dummy.restapiexample.com/api/v1/employee/5089",
+            testObserver.Subscribe(testObservable.Get<Request, Employee>("http://dummy.restapiexample.com/api/v1/employee/5089",
                 null, null, BodySerialization.JSON));
 
             //POST

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using GroundCloud.Contracts;
@@ -207,7 +206,7 @@ namespace GroundCloud.UnitTests
             IObservable<string> ResponseObject = mockGroundObject.FetchById<string>(Constants.TEST_PARAM);
 
             //Assert
-            Assert.IsType<string>(ResponseObject.FirstOrDefault());
+            Assert.IsType<string>(ResponseObject.Wait());
         }
 
         #endregion
