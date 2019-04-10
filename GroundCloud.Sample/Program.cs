@@ -10,8 +10,8 @@ namespace GroundCloud.Sample
         {
             Console.WriteLine("Hello World!");
             Program p = new Program();
-            //p.TestCloudObserver();
-            p.TestGroundObserver();
+            p.TestCloudObserver();
+            //p.TestGroundObserver();
         }
 
         public void TestCloudObserver()
