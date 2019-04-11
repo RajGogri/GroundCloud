@@ -19,8 +19,19 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
+        IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT,bool sync = false) where ReqBody : Request;
 
-        IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization);
+        /// <summary>
+        /// HTTP Get Request
+        /// </summary>
+        /// <typeparam name="ReqBody">Type Of HTTP Request Body</typeparam>
+        /// <typeparam name="ResBody">Type Of HTTP Response Body</typeparam>
+        /// <param name="body">HTTP Request Body</param>
+        /// <param name="bodySerialization">HTTP Request Body Serialization</param>
+        /// <param name="endPoint">HTTP Request Endpoint</param>
+        /// <param name="headers">HTTP Request Headers</param>
+        /// <returns>IObservable Emitting HTTP Response</returns>
+        IObservable<Response<ResBody>> GetById<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
         /// HTTP Post Request
@@ -33,7 +44,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Post<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization);
+        IObservable<Response<ResBody>> Post<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
         /// HTTP Put Request
@@ -45,7 +56,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Put<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Put<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
         /// HTTP Delete Request
@@ -57,7 +68,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Delete<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Delete<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
         /// HTTP Patch Request
@@ -69,18 +80,17 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Patch<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Patch<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
         /// HTTP Head Request
         /// </summary>
-        /// <typeparam name="ReqBody">Type Of HTTP Request Body</typeparam>
         /// <typeparam name="ResBody">Type Of HTTP Response Body</typeparam>
         /// <param name="bodySerialization">HTTP Request Body Serialization</param>
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Head<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Head<ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false);
 
         /// <summary>
         /// HTTP Options Request
@@ -92,12 +102,12 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT);
+        IObservable<Response<ResBody>> Options<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
-        /// Cancel Http Request
+        /// Cancels the Http Request Task.
         /// </summary>
-        /// <returns>Bool Is Request Cancelled</returns>
+        /// <returns>The task.</returns>
         IObservable<bool> CancelTask();
     }
 
@@ -139,5 +149,21 @@ namespace GroundCloud.Contracts
 /// Form Url Encoded Serialization
 /// </summary>
         URL_FORM_ENCODED
+    }
+
+    /// <summary>
+    /// Request Body.
+    /// </summary>
+    public abstract class Request {
+        /// <summary>
+        /// Gets or sets the identifier.
+        /// </summary>
+        /// <value>The identifier.</value>
+        public string Id { get; set;}
+        /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="T:GroundCloud.Contracts.Request"/> is synced.
+        /// </summary>
+        /// <value><c>true</c> if is synced; otherwise, <c>false</c>.</value>
+        public bool IsSynced { get; set; }
     }
 }

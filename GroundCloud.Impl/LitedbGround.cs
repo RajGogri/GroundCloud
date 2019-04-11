@@ -1,20 +1,21 @@
-﻿using GroundCloud.Contracts;
-using LiteDB;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using GroundCloud.Contracts;
+using LiteDB;
 
 namespace GroundCloud.Impl
 {
-    public class LitedbGround : IGround
+    public class GroundObservables : IGround
     {
-        public LitedbGround()
+        public GroundObservables()
         {
 
         }
 
-        private string connectionString = @"filename=MyDataBase.db;mode=Exclusive";
+        string connectionString = @"filename=MyDataBase.db;mode=Exclusive";
 
         /// <summary>
         /// Insert the specified entity.
