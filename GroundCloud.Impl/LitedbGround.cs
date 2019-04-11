@@ -1,21 +1,20 @@
-﻿using System;
+﻿using GroundCloud.Contracts;
+using LiteDB;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using GroundCloud.Contracts;
-using LiteDB;
 
 namespace GroundCloud.Impl
 {
-    public class GroundObservables:IGround
+    public class LitedbGround : IGround
     {
-        public GroundObservables()
+        public LitedbGround()
         {
 
         }
 
-        string connectionString = @"filename=MyDataBase.db;mode=Exclusive";
+        private string connectionString = @"filename=MyDataBase.db;mode=Exclusive";
 
         /// <summary>
         /// Insert the specified entity.
@@ -25,17 +24,18 @@ namespace GroundCloud.Impl
         /// <typeparam name="Entity">The 1st type parameter.</typeparam>
         public IObservable<Entity> Insert<Entity>(Entity entity)
         {
-            return Observable.Create<Entity>((IObserver<Entity> observer) => {
+            return Observable.Create<Entity>((IObserver<Entity> observer) =>
+            {
 
-            if (entity == null)
-            {
-                observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.PARAM_CANNOT_BE_NULL));
-            }
-            else
-            {
-                using (var db = new LiteDatabase(connectionString))
+                if (entity == null)
                 {
-                    // Get a collection (or create, if doesn't exist)
+                    observer.OnError(new ArgumentNullException(Constants.PARAM_ENTITY, Constants.PARAM_CANNOT_BE_NULL));
+                }
+                else
+                {
+                    using (var db = new LiteDatabase(connectionString))
+                    {
+                        // Get a collection (or create, if doesn't exist)
                         var entityCollection = db.GetCollection<Entity>(typeof(Entity).Name);
 
                         var insertedID = entityCollection.Insert(entity);
@@ -78,7 +78,8 @@ namespace GroundCloud.Impl
         /// <typeparam name="Entity">The 1st type parameter.</typeparam>
         public IObservable<Entity> Update<Entity>(Entity entity)
         {
-            return Observable.Create<Entity>((IObserver<Entity> observer) => {
+            return Observable.Create<Entity>((IObserver<Entity> observer) =>
+            {
 
                 if (entity == null)
                 {
@@ -123,7 +124,8 @@ namespace GroundCloud.Impl
         /// <typeparam name="Entity">The 1st type parameter.</typeparam>
         public IObservable<Entity> Upsert<Entity>(Entity entity)
         {
-            return Observable.Create<Entity>((IObserver<Entity> observer) => {
+            return Observable.Create<Entity>((IObserver<Entity> observer) =>
+            {
 
                 if (entity == null)
                 {
@@ -163,7 +165,8 @@ namespace GroundCloud.Impl
         /// <typeparam name="Entity">The 1st type parameter.</typeparam>
         public IObservable<Entity> Delete<Entity>(string id)
         {
-            return Observable.Create<Entity>((IObserver<Entity> observer) => {
+            return Observable.Create<Entity>((IObserver<Entity> observer) =>
+            {
 
                 if (string.IsNullOrEmpty(id))
                 {
@@ -206,7 +209,7 @@ namespace GroundCloud.Impl
 
                     }
                 }
-              
+
                 return Disposable.Empty;
             });
         }
@@ -218,7 +221,8 @@ namespace GroundCloud.Impl
         /// <typeparam name="Entity">The 1st type parameter.</typeparam>
         public IObservable<IEnumerable<Entity>> FetchAll<Entity>()
         {
-            return Observable.Create<IEnumerable<Entity>>((IObserver<IEnumerable<Entity>> observer) => {
+            return Observable.Create<IEnumerable<Entity>>((IObserver<IEnumerable<Entity>> observer) =>
+            {
 
                 using (var db = new LiteDatabase(connectionString))
                 {
@@ -257,7 +261,8 @@ namespace GroundCloud.Impl
         /// <typeparam name="Entity">The 1st type parameter.</typeparam>
         public IObservable<Entity> FetchById<Entity>(string id)
         {
-            return Observable.Create<Entity>((IObserver<Entity> observer) => {
+            return Observable.Create<Entity>((IObserver<Entity> observer) =>
+            {
 
                 if (string.IsNullOrEmpty(id))
                 {

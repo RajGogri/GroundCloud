@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reactive;
-using GroundCloud.Contracts;
+﻿using GroundCloud.Contracts;
 using GroundCloud.Impl;
+using System;
 
 namespace GroundCloud.Sample
 {
@@ -18,7 +16,7 @@ namespace GroundCloud.Sample
 
         public void TestCloudObserver()
         {
-            var testObservable = new CloudObservables();
+            var testObservable = new HttpClientCloud();
 
             var testObserver = new CloudObserver();
 
@@ -56,7 +54,7 @@ namespace GroundCloud.Sample
             var testGroundObserver = new GroundObserver();
             var testGObserver = new GroundListObserver();
 
-            var testGroundObservables = new GroundObservables();
+            var testGroundObservables = new LitedbGround();
 
             //Insert
 
