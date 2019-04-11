@@ -19,7 +19,7 @@ namespace GroundCloud.Contracts
         /// <param name="endPoint">HTTP Request Endpoint</param>
         /// <param name="headers">HTTP Request Headers</param>
         /// <returns>IObservable Emitting HTTP Response</returns>
-        IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT,bool sync = false) where ReqBody : Request;
+        IObservable<Response<ResBody>> Get<ReqBody, ResBody>(string endPoint, List<KeyValuePair<string, string>> headers, ReqBody body, BodySerialization bodySerialization = BodySerialization.DEFAULT, bool sync = false) where ReqBody : Request;
 
         /// <summary>
         /// HTTP Get Request
@@ -148,18 +148,20 @@ namespace GroundCloud.Contracts
         XML, /// <summary>
 /// Form Url Encoded Serialization
 /// </summary>
-        URL_FORM_ENCODED
+        URL_FORM_ENCODED,
+        TEXT
     }
 
     /// <summary>
     /// Request Body.
     /// </summary>
-    public abstract class Request {
+    public abstract class Request
+    {
         /// <summary>
         /// Gets or sets the identifier.
         /// </summary>
         /// <value>The identifier.</value>
-        public string Id { get; set;}
+        public string Id { get; set; }
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="T:GroundCloud.Contracts.Request"/> is synced.
         /// </summary>

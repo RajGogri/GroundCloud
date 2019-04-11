@@ -1,14 +1,14 @@
-﻿using System;
-using GroundCloud.Contracts;
+﻿using GroundCloud.Contracts;
+using System;
 
 namespace GroundCloud.Sample
 {
-    public class CloudObserver: IObserver<Response<Employee>>
+    public class CloudObserver : IObserver<Response<string>>
     {
         private IDisposable subscriber;
-        private Response<Employee> res;
+        private Response<string> res;
 
-        public virtual void Subscribe(IObservable<Response<Employee>> provider)
+        public virtual void Subscribe(IObservable<Response<string>> provider)
         {
             subscriber = provider.Subscribe(this);
         }
@@ -25,7 +25,7 @@ namespace GroundCloud.Sample
 
         public virtual void OnError(Exception error)
         {
-            Console.WriteLine("OnError Called.");
+            Console.WriteLine("OnError Called." + error);
             if (error.GetType().ToString() == "ArgumentNullException")
             {
 
@@ -33,9 +33,9 @@ namespace GroundCloud.Sample
             // Do nothing.
         }
 
-        public virtual void OnNext(Response<Employee> value)
+        public virtual void OnNext(Response<string> value)
         {
-            Console.WriteLine("OnNext Called.");
+            Console.WriteLine("OnNext Called." + value.ResponseBody);
             res = value;
         }
     }

@@ -1,16 +1,16 @@
-﻿using System;
-using System.Xml.Serialization;
+﻿using GroundCloud.Contracts;
 using Newtonsoft.Json;
-using System.Net.Http;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Globalization;
-using Newtonsoft.Json.Linq;
 using System.Linq;
-using GroundCloud.Contracts;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace GroundCloud.Impl
 {
-    public static class HelperClass
+    public static class CloudHelper
     {
         /// <summary>
         /// Tos the key value.
@@ -66,24 +66,29 @@ namespace GroundCloud.Impl
         /// <param name="obj">Object.</param>
         /// <param name="bodySerialization">Body serialization.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static string SerializeModelToJson<T>(T obj,BodySerialization bodySerialization)
+        public static Task<string> SerializeAsync<T>(T obj, BodySerialization bodySerialization)
         {
-            switch (bodySerialization)
+
+            return Task.Run(async () =>
             {
-                case BodySerialization.DEFAULT:
-                    return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-                case BodySerialization.JSON:
-                    return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-                case BodySerialization.XML:
-                    var stringwriter = new System.IO.StringWriter();
-                    var serializer = new XmlSerializer(typeof(T));
-                    serializer.Serialize(stringwriter, obj);
-                    return stringwriter.ToString();
-                case BodySerialization.URL_FORM_ENCODED:
-                    var keyValues = obj.ToKeyValue();
-                    return new FormUrlEncodedContent(keyValues).ToString();
-            }
-            return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                switch (bodySerialization)
+                {
+                    case BodySerialization.DEFAULT:
+                    case BodySerialization.JSON:
+                        return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                    case BodySerialization.XML:
+                        var stringwriter = new System.IO.StringWriter();
+                        var serializer = new XmlSerializer(typeof(T));
+                        serializer.Serialize(stringwriter, obj);
+                        return stringwriter.ToString();
+                    case BodySerialization.URL_FORM_ENCODED:
+                        var keyValues = obj.ToKeyValue();
+                        return await new FormUrlEncodedContent(keyValues).ReadAsStringAsync();
+                    case BodySerialization.TEXT:
+                        return obj?.ToString();
+                }
+                return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            });
         }
 
         /// <summary>
@@ -93,23 +98,26 @@ namespace GroundCloud.Impl
         /// <param name="json">Json.</param>
         /// <param name="bodySerialization">Body serialization.</param>
         /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static T DeserializeFromJson<T>(string json,BodySerialization bodySerialization)
+        public static Task<T> DeserializeAsync<T>(string json, BodySerialization bodySerialization)
         {
-            switch (bodySerialization)
+            return Task.Run(() =>
             {
-                case BodySerialization.DEFAULT:
-                    return JsonConvert.DeserializeObject<T>(json);
-                case BodySerialization.JSON:
-                    return JsonConvert.DeserializeObject<T>(json);
-                case BodySerialization.XML:
-                    var stringReader = new System.IO.StringReader(json);
-                    var serializer = new XmlSerializer(typeof(T));
-                    return (T)serializer.Deserialize(stringReader);
-                case BodySerialization.URL_FORM_ENCODED: //TODO
-                    return JsonConvert.DeserializeObject<T>(json);
+                switch (bodySerialization)
+                {
+                    case BodySerialization.DEFAULT:
+                    case BodySerialization.JSON:
+                    case BodySerialization.URL_FORM_ENCODED: //TODO
+                        return JsonConvert.DeserializeObject<T>(json);
+                    case BodySerialization.XML:
+                        var stringReader = new System.IO.StringReader(json);
+                        var serializer = new XmlSerializer(typeof(T));
+                        return (T)serializer.Deserialize(stringReader);
+                    case BodySerialization.TEXT:
+                        return (T)(object)json;
+                }
+                return JsonConvert.DeserializeObject<T>(json);
 
-            }
-            return JsonConvert.DeserializeObject<T>(json);
+            });
         }
 
         /// <summary>
@@ -117,7 +125,7 @@ namespace GroundCloud.Impl
         /// </summary>
         /// <returns>The serialization type.</returns>
         /// <param name="bodySerialization">Body serialization.</param>
-        public static string getSerializationType(BodySerialization bodySerialization)
+        public static string GetSerializationType(BodySerialization bodySerialization)
         {
             switch (bodySerialization)
             {
@@ -129,9 +137,12 @@ namespace GroundCloud.Impl
                     return "application/xml";
                 case BodySerialization.URL_FORM_ENCODED:
                     return "application/x-www-form-urlencoded";
+                case BodySerialization.TEXT:
+                    return "text/plain";
 
             }
             return "application/json";
+
         }
     }
 }

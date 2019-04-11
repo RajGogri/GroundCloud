@@ -1,6 +1,6 @@
-﻿using System;
-using GroundCloud.Contracts;
+﻿using GroundCloud.Contracts;
 using GroundCloud.Impl;
+using System;
 
 namespace GroundCloud.Sample
 {
@@ -11,18 +11,19 @@ namespace GroundCloud.Sample
             Console.WriteLine("Hello World!");
             Program p = new Program();
             p.TestCloudObserver();
+            Console.ReadLine();
             //p.TestGroundObserver();
         }
 
         public void TestCloudObserver()
         {
-            var testObservable = new CloudObservables();
+            var testObservable = new HttpClientCloud();
 
             var testObserver = new CloudObserver();
 
             //GET
-            testObserver.Subscribe(testObservable.Get<Request, Employee>("http://dummy.restapiexample.com/api/v1/employee/5089",
-                null, null, BodySerialization.JSON));
+            testObserver.Subscribe(testObservable.Get<Request, string>("http://dummy.restapiexample.com/api/v1/employee/5089",
+                null, null, BodySerialization.TEXT));
 
             //POST
             //Employee employee = new Employee();
@@ -54,7 +55,7 @@ namespace GroundCloud.Sample
             var testGroundObserver = new GroundObserver();
             var testGObserver = new GroundListObserver();
 
-            var testGroundObservables = new GroundObservables();
+            var testGroundObservables = new LitedbGround();
 
             //Insert
 
@@ -96,5 +97,5 @@ namespace GroundCloud.Sample
 
         }
     }
-   
+
 }
