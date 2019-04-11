@@ -1,10 +1,10 @@
-﻿using System;
+﻿using GroundCloud.Contracts;
+using Moq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using GroundCloud.Contracts;
-using Moq;
 using Xunit;
 
 namespace GroundCloud.UnitTests
@@ -300,5 +300,45 @@ namespace GroundCloud.UnitTests
         }
 
         #endregion
+
+        #region TestCased For Drop
+        [Fact]
+        public void ShouldValidateDropReturnsTrue()
+        {
+            //Arrange
+            IGround mockGroundObject = mockGround.Object;
+
+            //Act
+            mockGround.Setup(x => x.Drop(Constants.TEST_PARAM)).Returns(Observable.Return<bool>(true));
+            IObservable<bool> ResponseObject = mockGroundObject.Drop(Constants.TEST_PARAM);
+            bool isDropped = false;
+            ResponseObject.Subscribe((isDrop) =>
+            {
+                isDropped = isDrop;
+            });
+
+            //Assert
+            Assert.True(isDropped);
+        }
+        [Fact]
+        public void ShouldValidateDropReturnsFalse()
+        {
+            //Arrange
+            IGround mockGroundObject = mockGround.Object;
+
+            //Act
+            mockGround.Setup(x => x.Drop(Constants.TEST_PARAM)).Returns(Observable.Return<bool>(false));
+            IObservable<bool> ResponseObject = mockGroundObject.Drop(Constants.TEST_PARAM);
+            bool isDropped = true;
+            ResponseObject.Subscribe((isDrop) =>
+            {
+                isDropped = isDrop;
+            });
+
+            //Assert
+            Assert.False(isDropped);
+        }
+        #endregion
+
     }
 }

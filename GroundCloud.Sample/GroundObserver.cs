@@ -29,6 +29,7 @@ namespace GroundCloud.Sample
         public void OnNext(Customer value)
         {
             res = value;
+            Console.WriteLine(value.Id);
         }
     }
 

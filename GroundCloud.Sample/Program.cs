@@ -10,9 +10,9 @@ namespace GroundCloud.Sample
         {
             Console.WriteLine("Hello World!");
             Program p = new Program();
-            p.TestCloudObserver();
+            //p.TestCloudObserver();
+            p.TestGroundObserver();
             Console.ReadLine();
-            //p.TestGroundObserver();
         }
 
         public void TestCloudObserver()
@@ -59,13 +59,13 @@ namespace GroundCloud.Sample
 
             //Insert
 
-            //var customer = new Customer
-            //{
-            //    Name = "John Doe",
-            //    Phones = new string[] { "8000-0000", "9000-0000" },
-            //    IsActive = true
-            //};
-            //testGroundObserver.Subscribe(testGroundObservables.Insert<Customer>(customer));
+            var customer = new Customer
+            {
+                Name = "John Doe",
+                Phones = new string[] { "8000-0000", "9000-0000" },
+                IsActive = true,
+            };
+            testGroundObserver.Subscribe(testGroundObservables.Insert<Customer>(customer));
 
             //Update
 

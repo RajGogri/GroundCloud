@@ -49,5 +49,11 @@ namespace GroundCloud.Contracts
         /// <typeparam name="Entity">Type Of Entity</typeparam>
         /// <returns>Entity Matching Primary Id</returns>
         IObservable<Entity> FetchById<Entity>(string id);
+        /// <summary>
+        /// Drop Table/Collection From Local Cache
+        /// </summary>
+        /// <param name="name">Name Of Table / Collection</param>
+        /// <returns>true - If Table / Collection Is Dropped Else false</returns>
+        IObservable<bool> Drop(string name);
     }
 }
